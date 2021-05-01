@@ -1,0 +1,2 @@
+ALTER TABLE public.users
+ADD COLUMN bot_admin BOOLEAN NOT NULL DEFAULT false
