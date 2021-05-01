@@ -36,7 +36,7 @@ async fn db(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
     if let Some(db) = data.get::<DatabaseContainer>() {
         let db = &*db.lock().await;
-        let state: r2d2::State = db.state();
+        let state = db.state();
 
         msg.reply(
             ctx,
@@ -53,68 +53,3 @@ async fn db(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-#[command]
-#[owners_only]
-#[aliases("rd")]
-async fn reset_daily(ctx: &Context, msg: &Message) -> CommandResult {
-    let data = ctx.data.read().await;
-    if let Some(db) = data.get::<DatabaseContainer>() {
-        use crate::schema::users::dsl::*;
-        diesel::update(users)
-            .set(daily_claimed.eq(0))
-            .execute(&*db.lock().await.get().unwrap())
-            .expect("Unable to find user");
-
-        msg.reply(ctx, format!("Daily reset.")).await?;
-    } else {
-        msg.reply(ctx, "There's been a problem getting the DB.")
-            .await?;
-    }
-    Ok(())
-}
-
-#[command]
-#[owners_only]
-async fn new_item(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let item_name = args.single::<String>()?.replace("\"", "");
-    let item_description = args.single::<String>()?.replace("\"", "");
-    let item_price = args.single::<i32>()?;
-    let data = ctx.data.read().await;
-    if let Some(db) = data.get::<DatabaseContainer>() {
-        let item =
-            PurchasableItem::create(item_name, item_description, item_price, &*db.lock().await);
-        match item {
-            Ok(item) => {
-                msg.reply(  
-                    ctx,
-                    format!("Item {} created with id {}.", item.name, item.id),
-                )
-                .await?;
-            }
-            Err(_) => {}
-        }
-    } else {
-        msg.reply(ctx, "There's been a problem getting the DB.")
-            .await?;
-    }
-    Ok(())
-}
-
-#[command]
-#[owners_only]
-async fn set_money(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let discord_user = args.single::<UserId>()?;
-    let amount = args.single::<i32>()?;
-    let data = ctx.data.read().await;
-
-    if let Some(db) = data.get::<DatabaseContainer>() {
-        let db = &*db.lock().await;
-        let mut user: User = User::get(discord_user.0 as i64, db);
-        user.set_money(amount, db);
-        msg.reply(ctx, format!("User <@{}> ({}) now has {}$", user.discord_id, user.id, user.money)).await?;
-    } else {
-        msg.reply(ctx, "There's been a problem getting the DB.")
-        .await?;
-    }
-    Ok(())
-}
