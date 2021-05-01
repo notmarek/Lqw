@@ -1,6 +1,8 @@
+use crate::models::economy::PurchasableItem;
 use crate::models::economy::*;
 use crate::models::user::User;
 use crate::DatabaseContainer;
+use diesel::prelude::*;
 use serenity::framework::standard::{
     macros::{command, group},
     Args, CommandResult,

@@ -11,6 +11,7 @@ pub struct User {
     pub messages: i32,
     pub money: i32,
     pub daily_claimed: i64,
+    pub bot_admin: bool,
 }
 
 #[derive(Insertable)]
