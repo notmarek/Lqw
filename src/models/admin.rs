@@ -18,6 +18,7 @@ pub struct Ban {
     pub reason: String,
     pub ban_time: i64,
     pub end_time: i64,
+    pub lifted: i64,
 }
 
 #[derive(Insertable)]
@@ -66,5 +67,19 @@ impl NewBan {
             Ok(i) => Ok(i),
             Err(_) => Err("Couldn't create item.".to_string()),
         }
+    }
+}
+
+impl Ban {
+    pub async fn lift(&mut self, discord_id: UserId, ctx: &Context, db: &DBPool) {
+        use crate::schema::bans::dsl::*;
+        let db = db.get().unwrap();
+        let now: DateTime<Utc> = Utc::now();
+        let guild: PartialGuild = Guild::get(ctx, GuildId(self.guild_id.clone() as u64)).await.unwrap();
+        guild.unban(ctx, discord_id).await.unwrap();
+        diesel::update(bans.find(self.id))
+        .set(lifted.eq(now.timestamp()))
+        .execute(&db)
+        .expect("Unable to find ban");
     }
 }

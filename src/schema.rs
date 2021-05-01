@@ -7,6 +7,7 @@ table! {
         reason -> Varchar,
         ban_time -> Int8,
         end_time -> Int8,
+        lifted -> Int8,
     }
 }
 

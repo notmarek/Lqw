@@ -122,13 +122,13 @@ async fn buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 #[num_args(0)]
 #[only_in("guild")]
 #[aliases("$", "bal")]
-#[description("Get your current nekkocoin balance")]
+#[description("Get your current balance")]
 async fn balance(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
     if let Some(db) = data.get::<DatabaseContainer>() {
         let db = &*db.lock().await;
         let user: User = User::get(msg.author.id.0 as i64, db);
-        msg.reply(ctx, format!("You currently have {} nekkocoins", user.money))
+        msg.reply(ctx, format!("You currently have {}$", user.money))
             .await?;
     } else {
         msg.reply(ctx, "There was a problem getting the db.")
