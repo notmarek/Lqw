@@ -1,9 +1,11 @@
+use crate::models::admin::{Ban, NewBan};
 use crate::schema::users;
 use crate::DBPool;
 use chrono::prelude::*;
 use diesel::prelude::*;
 use humantime::Duration;
-
+use serenity::model::id::UserId;
+use serenity::prelude::*;
 #[derive(Debug, Queryable)]
 pub struct User {
     pub id: i32,
@@ -61,6 +63,29 @@ impl User {
         }
     }
 
+    pub async fn ban(
+        self,
+        ctx: &Context,
+        guild_id: i64,
+        admin: User,
+        reason: String,
+        duration: i64,
+        db: &DBPool,
+    ) -> Result<Ban, String> {
+        let now: DateTime<Utc> = Utc::now();
+        let new_ban: NewBan = NewBan {
+            admin_user_id: admin.id,
+            banned_user_id: self.id,
+            guild_id: guild_id,
+            reason: reason,
+            ban_time: now.timestamp(),
+            end_time: now.timestamp() + duration,
+        };
+
+        new_ban
+            .commit(UserId(self.discord_id as u64), ctx, db)
+            .await
+    }
     pub fn add_money(&mut self, amount: i32, db: &DBPool) {
         self.set_money(self.money + amount, db)
     }

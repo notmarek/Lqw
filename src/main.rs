@@ -10,6 +10,7 @@ mod schema;
 
 use commands::other::MY_HELP;
 use commands::economy::ECONOMY_GROUP;
+use commands::admin::ADMIN_GROUP;
 use database::establish_connection;
 use diesel::pg::PgConnection;
 use diesel::r2d2;
@@ -111,7 +112,8 @@ async fn main() {
         .unrecognised_command(unknown_command)
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
-        .group(&ECONOMY_GROUP);
+        .group(&ECONOMY_GROUP)
+        .group(&ADMIN_GROUP);
 
     let mut client = Client::builder(&token)
         .framework(framework)
