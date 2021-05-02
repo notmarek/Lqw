@@ -17,6 +17,7 @@ struct Fun;
 #[description("A command to get info from a nhentai id")]
 async fn nhentai(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let nhentai_id = args.single::<i64>()?;
+    let typing = msg.channel_id.start_typing(&ctx.http)?;
     let gallery: Gallery = Gallery::get(nhentai_id).await?;
     msg.channel_id
     .send_message(&ctx.http, |builder| {
@@ -32,5 +33,6 @@ async fn nhentai(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult 
         })
     })
     .await?;
+    typing.stop();
     Ok(())
 }
