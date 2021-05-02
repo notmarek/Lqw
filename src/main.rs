@@ -7,10 +7,12 @@ mod commands;
 mod database;
 mod models;
 mod schema;
+mod utils;
 
 use commands::admin::ADMIN_GROUP;
 use commands::economy::ECONOMY_GROUP;
 use commands::other::MY_HELP;
+use commands::fun::FUN_GROUP;
 use database::establish_connection;
 use diesel::pg::PgConnection;
 use diesel::r2d2;
@@ -105,7 +107,8 @@ async fn main() {
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
         .group(&ECONOMY_GROUP)
-        .group(&ADMIN_GROUP);
+        .group(&ADMIN_GROUP)
+        .group(&FUN_GROUP);
 
     let mut client = Client::builder(&token)
         .framework(framework)
