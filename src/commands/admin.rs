@@ -1,8 +1,5 @@
-use crate::models::economy::PurchasableItem;
-use crate::models::economy::*;
 use crate::models::user::User;
 use crate::DatabaseContainer;
-use diesel::prelude::*;
 use serenity::framework::standard::{
     macros::{command, group},
     Args, CommandResult,
@@ -23,7 +20,7 @@ struct Admin;
 async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let discord_uid = args.single::<UserId>()?;
-    let duration = args.single::<String>()?;
+    let _duration = args.single::<String>()?;
     let reason = args.rest();
     if let Some(db) = data.get::<DatabaseContainer>() {
         let admin = User::get(msg.author.id.0 as i64, db);

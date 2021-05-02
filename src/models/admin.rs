@@ -4,8 +4,6 @@ use crate::schema::warnings;
 use crate::DBPool;
 use chrono::prelude::*;
 use diesel::prelude::*;
-use humantime::Duration;
-use serenity::model::guild::{Guild, PartialGuild};
 use serenity::model::id::{GuildId, UserId};
 use serenity::prelude::*;
 
@@ -60,11 +58,7 @@ impl NewBan {
         db: &DBPool,
     ) -> Result<Ban, String> {
         use crate::schema::bans::dsl::*;
-
-        let guild: PartialGuild = Guild::get(ctx, GuildId(self.guild_id.clone() as u64))
-            .await
-            .unwrap();
-        guild
+        GuildId(self.guild_id.clone() as u64)
             .ban_with_reason(ctx, discord_uid, 0, &self.reason)
             .await
             .unwrap();
@@ -80,10 +74,15 @@ impl NewBan {
 }
 
 impl Ban {
-    pub fn get(user: &User, guild: i64, db: &DBPool) -> Result<Self, String> {
+    pub fn get(user: &User, discord_guild_id: i64, db: &DBPool) -> Result<Self, String> {
         use crate::schema::bans::dsl::*;
         let db = db.get().unwrap();
-        match bans.filter(banned_user_id.eq(&user.id)).filter(lifted.eq(0)).first::<Ban>(&db) {
+        match bans
+            .filter(banned_user_id.eq(&user.id))
+            .filter(guild_id.eq(discord_guild_id))
+            .filter(lifted.eq(0))
+            .first::<Ban>(&db)
+        {
             Ok(ban) => Ok(ban),
             Err(_) => Err("Ban not found".to_string()),
         }
@@ -92,10 +91,10 @@ impl Ban {
         use crate::schema::bans::dsl::*;
         let db = db.get().unwrap();
         let now: DateTime<Utc> = Utc::now();
-        let guild: PartialGuild = Guild::get(ctx, GuildId(self.guild_id.clone() as u64))
+        GuildId(self.guild_id.clone() as u64)
+            .unban(ctx, discord_id)
             .await
             .unwrap();
-        guild.unban(ctx, discord_id).await.unwrap();
         diesel::update(bans.find(self.id))
             .set(lifted.eq(now.timestamp()))
             .execute(&db)

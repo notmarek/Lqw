@@ -8,32 +8,22 @@ mod database;
 mod models;
 mod schema;
 
-use commands::other::MY_HELP;
-use commands::economy::ECONOMY_GROUP;
 use commands::admin::ADMIN_GROUP;
+use commands::economy::ECONOMY_GROUP;
+use commands::other::MY_HELP;
 use database::establish_connection;
 use diesel::pg::PgConnection;
 use diesel::r2d2;
 use serenity::{
     async_trait,
-    client::bridge::gateway::{ShardId, ShardManager},
+    client::bridge::gateway::ShardManager,
     framework::standard::{
-        buckets::{LimitedFor, RevertBucket},
-        help_commands,
-        macros::{check, command, group, help, hook},
-        Args, CommandGroup, CommandOptions, CommandResult, DispatchError, HelpOptions, Reason,
+        macros::{group, hook},
         StandardFramework,
     },
     http::Http,
-    model::{
-        channel::{Channel, Message},
-        event::ResumedEvent,
-        gateway::Ready,
-        id::UserId,
-        permissions::Permissions,
-    },
+    model::{channel::Message, event::ResumedEvent, gateway::Ready},
     prelude::*,
-    utils::{content_safe, ContentSafeOptions},
 };
 
 use std::{collections::HashSet, env, sync::Arc};
@@ -64,7 +54,7 @@ impl EventHandler for Handler {
         let activity = serenity::model::gateway::Activity::competing("Your Mom");
         // let status = serenity::model::user::OnlineStatus::Online;
         ctx.set_activity(activity).await;
-    }   
+    }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
         info!("Resumed");
@@ -73,14 +63,17 @@ impl EventHandler for Handler {
 
 #[hook]
 async fn unknown_command(ctx: &Context, msg: &Message, unknown_command_name: &str) {
-    msg.reply(ctx, format!("Could not find command named '{}'", unknown_command_name)).await.unwrap();
+    msg.reply(
+        ctx,
+        format!("Could not find command named '{}'", unknown_command_name),
+    )
+    .await
+    .unwrap();
 }
-
 
 #[group]
 #[commands(quit, hello, db)]
 struct General;
-
 
 #[tokio::main]
 async fn main() {
