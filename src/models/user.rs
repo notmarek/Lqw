@@ -1,4 +1,4 @@
-use crate::models::admin::{Ban, NewBan};
+use crate::models::admin::{Ban, NewBan, Warning};
 use crate::schema::users;
 use crate::DBPool;
 use chrono::prelude::*;
@@ -86,6 +86,11 @@ impl User {
             .commit(UserId(self.discord_id as u64), ctx, db)
             .await
     }
+
+    pub fn warn(self, admin: User, guild_id: i64, reason: String, db: &DBPool) -> Result<Warning, String> {
+        Warning::new(admin, self, guild_id, reason, db)
+    }
+    
     pub fn add_money(&mut self, amount: i32, db: &DBPool) {
         self.set_money(self.money + amount, db)
     }

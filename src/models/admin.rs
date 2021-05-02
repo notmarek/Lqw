@@ -1,13 +1,13 @@
+use crate::models::user::User;
 use crate::schema::bans;
 use crate::schema::warnings;
 use crate::DBPool;
 use chrono::prelude::*;
 use diesel::prelude::*;
-use serenity::prelude::*;
 use humantime::Duration;
 use serenity::model::guild::{Guild, PartialGuild};
 use serenity::model::id::{GuildId, UserId};
-
+use serenity::prelude::*;
 
 #[derive(Debug, Queryable)]
 pub struct Ban {
@@ -52,13 +52,22 @@ pub struct NewWarning {
     pub warning_time: i64,
 }
 
-
 impl NewBan {
-    pub async fn commit(self, discord_uid: UserId, ctx: &Context, db: &DBPool) -> Result<Ban, String> {
+    pub async fn commit(
+        self,
+        discord_uid: UserId,
+        ctx: &Context,
+        db: &DBPool,
+    ) -> Result<Ban, String> {
         use crate::schema::bans::dsl::*;
 
-        let guild: PartialGuild = Guild::get(ctx, GuildId(self.guild_id.clone() as u64)).await.unwrap();
-        guild.ban_with_reason(ctx, discord_uid, 0, &self.reason).await.unwrap();
+        let guild: PartialGuild = Guild::get(ctx, GuildId(self.guild_id.clone() as u64))
+            .await
+            .unwrap();
+        guild
+            .ban_with_reason(ctx, discord_uid, 0, &self.reason)
+            .await
+            .unwrap();
         let db = db.get().unwrap();
         match diesel::insert_into(bans)
             .values(self)
@@ -75,11 +84,35 @@ impl Ban {
         use crate::schema::bans::dsl::*;
         let db = db.get().unwrap();
         let now: DateTime<Utc> = Utc::now();
-        let guild: PartialGuild = Guild::get(ctx, GuildId(self.guild_id.clone() as u64)).await.unwrap();
+        let guild: PartialGuild = Guild::get(ctx, GuildId(self.guild_id.clone() as u64))
+            .await
+            .unwrap();
         guild.unban(ctx, discord_id).await.unwrap();
         diesel::update(bans.find(self.id))
-        .set(lifted.eq(now.timestamp()))
-        .execute(&db)
-        .expect("Unable to find ban");
+            .set(lifted.eq(now.timestamp()))
+            .execute(&db)
+            .expect("Unable to find ban");
+    }
+}
+
+impl Warning {
+    pub fn new(admin: User, warnee: User, i_guild_id: i64, i_reason: String, db: &DBPool) -> Result<Self, String> {
+        use crate::schema::warnings::dsl::*;
+        let db = db.get().unwrap();
+        let now: DateTime<Utc> = Utc::now();
+        let new_warn = NewWarning {
+            admin_user_id: admin.id,
+            warned_user_id: warnee.id,
+            guild_id: i_guild_id,
+            reason: i_reason,
+            warning_time: now.timestamp(),
+        };
+        match diesel::insert_into(warnings)
+            .values(new_warn)
+            .get_result::<Warning>(&db)
+        {
+            Ok(i) => Ok(i),
+            Err(_) => Err("Couldn't create warning.".to_string()),
+        }
     }
 }
