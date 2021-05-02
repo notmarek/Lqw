@@ -52,7 +52,7 @@ pub type DBPool = r2d2::Pool<r2d2::ConnectionManager<PgConnection>>;
 pub struct DatabaseContainer;
 
 impl TypeMapKey for DatabaseContainer {
-    type Value = Arc<Mutex<r2d2::Pool<r2d2::ConnectionManager<PgConnection>>>>;
+    type Value = DBPool;
 }
 
 struct Handler;
@@ -86,7 +86,6 @@ struct General;
 async fn main() {
     dotenv::dotenv().expect("Failed to load .env file");
     let db = establish_connection();
-    let db = Arc::new(Mutex::new(db));
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
         .finish();

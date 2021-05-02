@@ -26,7 +26,6 @@ async fn ban(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let duration = args.single::<String>()?;
     let reason = args.rest();
     if let Some(db) = data.get::<DatabaseContainer>() {
-        let db = &*db.lock().await;
         let admin = User::get(msg.author.id.0 as i64, db);
         let user = User::get(discord_uid.0 as i64, db);
         let ban = user.ban(ctx, msg.guild_id.unwrap().0 as i64, admin, reason.to_string(), 0, db).await?;

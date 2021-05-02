@@ -35,7 +35,6 @@ async fn hello(ctx: &Context, msg: &Message) -> CommandResult {
 async fn db(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
     if let Some(db) = data.get::<DatabaseContainer>() {
-        let db = &*db.lock().await;
         let state = db.state();
 
         msg.reply(

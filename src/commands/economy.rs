@@ -24,7 +24,6 @@ async fn daily(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
     if let Some(db) = data.get::<DatabaseContainer>() {
         let discord_uid = msg.author.id.0 as i64;
-        let db = &*db.lock().await;
         let mut user = User::get(discord_uid, db);
         match user.claim_daily(db) {
             Ok(_) => {
@@ -80,7 +79,6 @@ async fn buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let item_amount = args.single::<i32>()?;
     let data = ctx.data.read().await;
     if let Some(db) = data.get::<DatabaseContainer>() {
-        let db = &*db.lock().await;
         let mut user: User = User::get(msg.author.id.0 as i64, db);
         let item: PurchasableItem = PurchasableItem::get_by_id(item_id, db).unwrap();
         if user.money >= item.price * item_amount {
@@ -126,7 +124,6 @@ async fn buy(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 async fn balance(ctx: &Context, msg: &Message) -> CommandResult {
     let data = ctx.data.read().await;
     if let Some(db) = data.get::<DatabaseContainer>() {
-        let db = &*db.lock().await;
         let user: User = User::get(msg.author.id.0 as i64, db);
         msg.reply(ctx, format!("You currently have {}$", user.money))
             .await?;
@@ -146,7 +143,7 @@ async fn new_item(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult
     let data = ctx.data.read().await;
     if let Some(db) = data.get::<DatabaseContainer>() {
         let item =
-            PurchasableItem::create(item_name, item_description, item_price, &*db.lock().await);
+            PurchasableItem::create(item_name, item_description, item_price, &db);
         match item {
             Ok(item) => {
                 msg.reply(
@@ -172,7 +169,6 @@ async fn set_money(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     let data = ctx.data.read().await;
 
     if let Some(db) = data.get::<DatabaseContainer>() {
-        let db = &*db.lock().await;
         let mut user: User = User::get(discord_user.0 as i64, db);
         user.set_money(amount, db);
         msg.reply(
@@ -199,7 +195,7 @@ async fn reset_daily(ctx: &Context, msg: &Message) -> CommandResult {
         use crate::schema::users::dsl::*;
         diesel::update(users)
             .set(daily_claimed.eq(0))
-            .execute(&*db.lock().await.get().unwrap())
+            .execute(&db.get().unwrap())
             .expect("Unable to find user");
 
         msg.reply(ctx, format!("Daily reset.")).await?;
