@@ -83,7 +83,7 @@ impl Ban {
     pub fn get(user: &User, guild: i64, db: &DBPool) -> Result<Self, String> {
         use crate::schema::bans::dsl::*;
         let db = db.get().unwrap();
-        match bans.filter(banned_user_id.eq(&user.id)).first::<Ban>(&db) {
+        match bans.filter(banned_user_id.eq(&user.id)).filter(lifted.eq(0)).first::<Ban>(&db) {
             Ok(ban) => Ok(ban),
             Err(_) => Err("Ban not found".to_string()),
         }
