@@ -86,11 +86,21 @@ impl User {
             .commit(UserId(self.discord_id as u64), ctx, db)
             .await
     }
-
-    pub fn warn(self, admin: User, guild_id: i64, reason: String, db: &DBPool) -> Result<Warning, String> {
+    pub async fn unban(&self, ctx: &Context, guild_id: i64, db: &DBPool) -> Ban {
+        let mut ban = Ban::get(self, guild_id, db).unwrap();
+        ban.lift(UserId(self.discord_id as u64), ctx, db).await;
+        ban
+    }
+    pub fn warn(
+        self,
+        admin: User,
+        guild_id: i64,
+        reason: String,
+        db: &DBPool,
+    ) -> Result<Warning, String> {
         Warning::new(admin, self, guild_id, reason, db)
     }
-    
+
     pub fn add_money(&mut self, amount: i32, db: &DBPool) {
         self.set_money(self.money + amount, db)
     }

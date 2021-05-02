@@ -80,6 +80,14 @@ impl NewBan {
 }
 
 impl Ban {
+    pub fn get(user: &User, guild: i64, db: &DBPool) -> Result<Self, String> {
+        use crate::schema::bans::dsl::*;
+        let db = db.get().unwrap();
+        match bans.filter(banned_user_id.eq(&user.id)).first::<Ban>(&db) {
+            Ok(ban) => Ok(ban),
+            Err(_) => Err("Ban not found".to_string()),
+        }
+    }
     pub async fn lift(&mut self, discord_id: UserId, ctx: &Context, db: &DBPool) {
         use crate::schema::bans::dsl::*;
         let db = db.get().unwrap();
@@ -96,7 +104,13 @@ impl Ban {
 }
 
 impl Warning {
-    pub fn new(admin: User, warnee: User, i_guild_id: i64, i_reason: String, db: &DBPool) -> Result<Self, String> {
+    pub fn new(
+        admin: User,
+        warnee: User,
+        i_guild_id: i64,
+        i_reason: String,
+        db: &DBPool,
+    ) -> Result<Self, String> {
         use crate::schema::warnings::dsl::*;
         let db = db.get().unwrap();
         let now: DateTime<Utc> = Utc::now();
