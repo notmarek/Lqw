@@ -22,7 +22,7 @@ async fn quit(ctx: &Context, msg: &Message) -> CommandResult {
 #[owners_only]
 async fn hello(ctx: &Context, msg: &Message) -> CommandResult {
     // let data = ctx.data.read().await;
-    msg.reply(ctx, format!("hello <@{}>", msg.author.id))
+    msg.reply(ctx, format!("hello {}", msg.author.id.mention()))
         .await?;
     Ok(())
 }

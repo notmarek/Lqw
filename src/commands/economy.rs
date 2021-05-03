@@ -174,8 +174,8 @@ async fn set_money(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
         msg.reply(
             ctx,
             format!(
-                "User <@{}> ({}) now has {}$",
-                user.discord_id, user.id, user.money
+                "User {} ({}) now has {}$",
+                UserId(user.discord_id as u64).mention(), user.id, user.money
             ),
         )
         .await?;
