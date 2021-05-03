@@ -52,4 +52,17 @@ impl Gallery {
             .await?;
         Ok(gallery)
     }
+    pub fn get_tags(self) -> String {
+        let mut f: String = String::new();
+        for tag in self.tags {
+            if tag.tag_type == "tag".to_string() {
+                if f == String::new() {
+                    f = tag.name;
+                } else {
+                    f = f + ", " + tag.name.as_str();
+                }
+            }
+        }
+        f
+    }
 }
