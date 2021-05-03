@@ -11,7 +11,7 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 #[group]
-#[commands(daily, buy, balance, set_money, reset_daily, new_item, shop)]
+#[commands(daily, buy, balance, set_money, reset_daily, new_item, shop, inventory)]
 struct Economy;
 
 #[command]
@@ -224,6 +224,41 @@ async fn shop(ctx: &Context, msg: &Message) -> CommandResult {
                     let embed = e.colour(0xff0069).title("Shop");
                     for item in shop_items {
                         embed.field(format!("[ID: {}] {} - ${}", item.id, item.name, item.price), format!("{}", item.description), false);
+                    }
+                    embed
+                })
+            })
+            .await?;
+
+
+    } else {
+        msg.reply(ctx, "There's been a problem getting the DB.")
+        .await?;
+    }
+    Ok(())
+}
+
+#[command]
+#[help_available]
+#[num_args(0)]
+#[only_in("guild")]
+#[aliases("inv")]
+#[description("Get all items in your inventory.")]
+async fn inventory(ctx: &Context, msg: &Message) -> CommandResult {
+    let data = ctx.data.read().await;
+    if let Some(db) = data.get::<DatabaseContainer>() {
+        let user = User::get(msg.author.id.0 as i64, db);
+        let inv_items = user.get_inventory(db)?;
+        msg.channel_id
+            .send_message(&ctx.http, |builder| {
+                builder
+                    .reference_message(msg)
+                    .allowed_mentions(|f| f.replied_user(true));
+                builder.embed(|e| {
+                    let embed = e.colour(0xff0069).title("Inventory");
+                    for incomplete_item in inv_items {
+                        let item = PurchasableItem::get_by_id(incomplete_item.id, db).unwrap();
+                        embed.field(format!("[ID: {}] {} - You have: {}", item.id, item.name, incomplete_item.amount), format!("{}", item.description), false);
                     }
                     embed
                 })

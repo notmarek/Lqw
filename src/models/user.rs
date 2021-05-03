@@ -1,4 +1,5 @@
 use crate::models::admin::{Ban, NewBan, Warning};
+use crate::models::economy::InventoryItem;
 use crate::schema::users;
 use crate::DBPool;
 use chrono::prelude::*;
@@ -101,6 +102,9 @@ impl User {
         Warning::new(admin, self, guild_id, reason, db)
     }
 
+    pub fn get_inventory(self, db: &DBPool) -> Result<Vec<InventoryItem>, String> {
+        InventoryItem::get_all_by_user(self, db)
+    }
     pub fn add_money(&mut self, amount: i32, db: &DBPool) {
         self.set_money(self.money + amount, db)
     }

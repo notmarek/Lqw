@@ -1,5 +1,6 @@
 use crate::schema::inventory;
 use crate::schema::shop;
+use crate::models::user::User;
 use crate::DBPool;
 use diesel::prelude::*;
 
@@ -86,6 +87,14 @@ impl InventoryItem {
         {
             Ok(item) => Ok(item),
             Err(_) => Err("Item not found.".to_string()),
+        }
+    }
+    pub fn get_all_by_user(user: User, db: &DBPool) -> Result<Vec<Self>, String> {
+        use crate::schema::inventory::dsl::*;
+        let db = db.get().unwrap();
+        match inventory.filter(user_id.eq(user.id)).get_results::<Self>(&db) {
+            Ok(items) => Ok(items),
+            Err(_) => Err("Couldn't fetch all items.".to_string()),
         }
     }
     pub fn add(
