@@ -26,6 +26,7 @@ table! {
         name -> Varchar,
         description -> Varchar,
         price -> Int4,
+        purchasable -> Bool,
     }
 }
 

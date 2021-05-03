@@ -11,7 +11,7 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 #[group]
-#[commands(daily, buy, balance, set_money, reset_daily, new_item)]
+#[commands(daily, buy, balance, set_money, reset_daily, new_item, shop)]
 struct Economy;
 
 #[command]
@@ -202,6 +202,38 @@ async fn reset_daily(ctx: &Context, msg: &Message) -> CommandResult {
     } else {
         msg.reply(ctx, "There's been a problem getting the DB.")
             .await?;
+    }
+    Ok(())
+}
+
+#[command]
+#[help_available]
+#[num_args(0)]
+#[only_in("guild")]
+#[description("Get all purchasabale items.")]
+async fn shop(ctx: &Context, msg: &Message) -> CommandResult {
+    let data = ctx.data.read().await;
+    if let Some(db) = data.get::<DatabaseContainer>() {
+        let shop_items = PurchasableItem::get_all(db)?;
+        msg.channel_id
+            .send_message(&ctx.http, |builder| {
+                builder
+                    .reference_message(msg)
+                    .allowed_mentions(|f| f.replied_user(true));
+                builder.embed(|e| {
+                    let embed = e.colour(0xff0069).title("Shop");
+                    for item in shop_items {
+                        embed.field(format!("[ID: {}] {} - ${}", item.id, item.name, item.price), format!("{}", item.description), false);
+                    }
+                    embed
+                })
+            })
+            .await?;
+
+
+    } else {
+        msg.reply(ctx, "There's been a problem getting the DB.")
+        .await?;
     }
     Ok(())
 }

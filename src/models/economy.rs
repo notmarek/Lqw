@@ -9,6 +9,7 @@ pub struct PurchasableItem {
     pub name: String,
     pub description: String,
     pub price: i32,
+    pub purchasable: bool,
 }
 #[derive(Insertable)]
 #[table_name = "shop"]
@@ -27,7 +28,14 @@ impl PurchasableItem {
             Err(_) => Err("Item not found.".to_string()),
         }
     }
-
+    pub fn get_all(db: &DBPool) -> Result<Vec<Self>, String> {
+        use crate::schema::shop::dsl::*;
+        let db = db.get().unwrap();
+        match shop.filter(purchasable.eq(true)).get_results::<PurchasableItem>(&db) {
+            Ok(items) => Ok(items),
+            Err(_) => Err("Couldn't fetch all items.".to_string()),
+        }
+    }
     pub fn create(
         item_name: String,
         item_description: String,
