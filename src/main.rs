@@ -63,16 +63,6 @@ impl EventHandler for Handler {
     }
 }
 
-#[hook]
-async fn unknown_command(ctx: &Context, msg: &Message, unknown_command_name: &str) {
-    msg.reply(
-        ctx,
-        format!("Could not find command named '{}'", unknown_command_name),
-    )
-    .await
-    .unwrap();
-}
-
 #[group]
 #[commands(quit, hello, db)]
 struct General;
@@ -103,7 +93,6 @@ async fn main() {
 
     let framework = StandardFramework::new()
         .configure(|c| c.owners(owners).prefix("~"))
-        .unrecognised_command(unknown_command)
         .help(&MY_HELP)
         .group(&GENERAL_GROUP)
         .group(&ECONOMY_GROUP)
