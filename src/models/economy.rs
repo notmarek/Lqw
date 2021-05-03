@@ -26,7 +26,7 @@ impl PurchasableItem {
         let db = db.get().unwrap();
         match shop.filter(id.eq(item_id)).first::<PurchasableItem>(&db) {
             Ok(item) => Ok(item),
-            Err(_) => Err("Item not found.".to_string()),
+            Err(_) => Err(format!("Item not found. - {}", item_id)),
         }
     }
     pub fn get_all(db: &DBPool) -> Result<Vec<Self>, String> {

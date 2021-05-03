@@ -257,7 +257,7 @@ async fn inventory(ctx: &Context, msg: &Message) -> CommandResult {
                 builder.embed(|e| {
                     let embed = e.colour(0xff0069).title("Inventory");
                     for incomplete_item in inv_items {
-                        let item = PurchasableItem::get_by_id(incomplete_item.id, db).unwrap();
+                        let item = PurchasableItem::get_by_id(incomplete_item.item_id, db).unwrap();
                         embed.field(format!("[ID: {}] {} - You have: {}", item.id, item.name, incomplete_item.amount), format!("{}", item.description), false);
                     }
                     embed
