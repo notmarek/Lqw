@@ -128,4 +128,12 @@ impl Warning {
             Err(_) => Err("Couldn't create warning.".to_string()),
         }
     }
+    pub fn get_all_by_user(user: User, i_guild_id: i64, db: &DBPool) -> Result<Vec<Self>, String> {
+        use crate::schema::warnings::dsl::*;
+        let db = db.get().unwrap();
+        match warnings.filter(warned_user_id.eq(user.id)).filter(guild_id.eq(i_guild_id)).get_results::<Self>(&db) {
+            Ok(items) => Ok(items),
+            Err(_) => Err("Couldn't fetch all items.".to_string()),
+        }
+    }
 }

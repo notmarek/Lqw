@@ -15,6 +15,7 @@ pub struct User {
     pub money: i32,
     pub daily_claimed: i64,
     pub bot_admin: bool,
+    pub timezone: Option<i32>,
 }
 
 #[derive(Insertable)]
@@ -35,6 +36,25 @@ impl User {
             Err(_) => {
                 match diesel::insert_into(users)
                     .values(discord_id.eq(discord_user_id))
+                    .get_result::<User>(&db)
+                {
+                    Ok(u) => u,
+                    Err(e) => panic!("{}", e),
+                }
+            }
+        }
+    }
+    pub fn get_by_id(user_id: i32, db: &DBPool) -> Self {
+        use crate::schema::users::dsl::*;
+        let db = db.get().unwrap();
+        match users
+            .filter(id.eq(&user_id))
+            .first::<User>(&db)
+        {
+            Ok(user) => user,
+            Err(_) => {
+                match diesel::insert_into(users)
+                    .values(id.eq(user_id))
                     .get_result::<User>(&db)
                 {
                     Ok(u) => u,
@@ -102,6 +122,9 @@ impl User {
         Warning::new(admin, self, guild_id, reason, db)
     }
 
+    pub fn warns(self, guild_id: i64, db: &DBPool) -> Result<Vec<Warning>, String> {
+        Warning::get_all_by_user(self, guild_id, db)
+    }
     pub fn get_inventory(self, db: &DBPool) -> Result<Vec<InventoryItem>, String> {
         InventoryItem::get_all_by_user(self, db)
     }

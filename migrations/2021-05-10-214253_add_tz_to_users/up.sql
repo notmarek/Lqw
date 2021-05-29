@@ -1,0 +1,2 @@
+ALTER TABLE public.users
+ADD COLUMN timezone INTEGER DEFAULT NULL 

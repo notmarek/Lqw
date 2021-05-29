@@ -38,6 +38,7 @@ table! {
         money -> Int4,
         daily_claimed -> Int8,
         bot_admin -> Bool,
+        timezone -> Nullable<Int4>,
     }
 }
 
